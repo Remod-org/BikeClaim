@@ -36,9 +36,9 @@ Limits may be set for standard and VIP users.
     "VIPLimit": 5.0
   },
   "Version": {
-    "Major": 1,
+    "Major": 0,
     "Minor": 0,
-    "Patch": 17
+    "Patch": 2
   }
 }
 ```

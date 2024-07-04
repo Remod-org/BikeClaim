@@ -30,7 +30,7 @@ using UnityEngine;
 
 namespace Oxide.Plugins
 {
-    [Info("BikeClaim", "RFC1920", "0.0.1")]
+    [Info("BikeClaim", "RFC1920", "0.0.2")]
     [Description("Manage bicycle ownership and access")]
 
     internal class BikeClaim : RustPlugin
@@ -70,7 +70,7 @@ namespace Oxide.Plugins
                 ["bikespawned"] = "You have spawned a bike!",
                 ["bikeowned"] = "Someone else owns this bike!",
                 ["serverowned"] = "Server-owned, free bike.",
-                ["bikeinfo"] = "{0}:\n  Health: {1}\n  Stamina: {2}\n  Owner: {3}\n  {4}{5}",
+                ["bikeinfo"] = "Health: {0}\n  Owner: {1}\n  {2}",
                 ["notyourbike"] = "Someone else owns this bike.  Perhaps no one...",
                 ["nobikes"] = "No bikes found.",
                 ["foundbike"] = "Your bike is {0}m away in {1}."
@@ -330,7 +330,7 @@ namespace Oxide.Plugins
                 if (bike != null)
                 {
                     string owner = bike.OwnerID > 0 ? FindPlayerById(bike.OwnerID) : Lang("serverowned");
-                    Message(iplayer, "Bikeinfo", bike.health, bike.health, owner);
+                    Message(iplayer, "bikeinfo", bike.health, owner);
                 }
             }
         }
