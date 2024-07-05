@@ -68,7 +68,7 @@ Limits may be set for standard and VIP users.
 
 ## Commands
 
-- `/bclaim` - Claim the bike you're looking at (requires bikes.claim permission).  If the bike is owned by the server, this should work.  However, this will not bypass the purchase routine at the stables.
+- `/bclaim` - Claim the bike you're looking at (requires bikes.claim permission).  If the bike is owned by the server, this should work.
 - `/brelease` - Release ownership of the bike you're looking at (requires bikes.claim permission).
 - `/bremove` - Kill the bike in front of you (requires bikeclaim.spawn permission and ownership of the bike).  You may then enjoy some delicious bike meat.
 - `/bfind` - Show location of nearest owned bike
