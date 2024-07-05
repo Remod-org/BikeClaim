@@ -1,5 +1,5 @@
 # BikeClaim
-## Basic ownership management for Rust bikes
+## Basic ownership management for Rust bikes (pedal and motorbike)
 
 Tired of some clown stealing the bike you just bought or found?  This plugin allows players to maintain ownership and optionally prevent others from riding off with them.
 
@@ -38,7 +38,7 @@ Limits may be set for standard and VIP users.
   "Version": {
     "Major": 0,
     "Minor": 0,
-    "Patch": 2
+    "Patch": 3
   }
 }
 ```
@@ -61,6 +61,7 @@ Limits may be set for standard and VIP users.
 
 - `bikeclaim.claim` -- Allows player claim and release bikes.
 - `bikeclaim.spawn` -- Allows player to spawn or remove a bike.
+- `bikeclaim.mbspawn` -- Allows player to spawn or remove a motorbike.
 - `bikeclaim.find` -- Allows player to show the location of their nearest claimed bike.
 - `bikeclaim.vip` -- Gives player vip limits when limit is in use.
 

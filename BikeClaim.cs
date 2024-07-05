@@ -1,4 +1,4 @@
-﻿#region License (GPL v2)
+#region License (GPL v2)
 /*
     BikeClaim
     Copyright (c) 2024 RFC1920 <desolationoutpostpve@gmail.com>
@@ -30,7 +30,7 @@ using UnityEngine;
 
 namespace Oxide.Plugins
 {
-    [Info("BikeClaim", "RFC1920", "0.0.2")]
+    [Info("BikeClaim", "RFC1920", "0.0.3")]
     [Description("Manage bicycle ownership and access")]
 
     internal class BikeClaim : RustPlugin
@@ -44,6 +44,7 @@ namespace Oxide.Plugins
         private static Dictionary<ulong, HTimer> htimer = new Dictionary<ulong, HTimer>();
         private const string permClaim_Use = "bikeclaim.claim";
         private const string permSpawn_Use = "bikeclaim.spawn";
+        private const string permSpawn_Motor = "bikeclaim.motorspawn";
         private const string permFind_Use = "bikeclaim.find";
         private const string permVIP = "bikeclaim.vip";
         private bool enabled;
@@ -86,12 +87,14 @@ namespace Oxide.Plugins
             AddCovalenceCommand("bclaim", "CmdClaim");
             AddCovalenceCommand("brelease", "CmdRelease");
             AddCovalenceCommand("bspawn", "CmdSpawn");
+            AddCovalenceCommand("mbspawn", "CmdSpawnMotorBike");
             AddCovalenceCommand("bremove", "CmdRemove");
             AddCovalenceCommand("bfind", "CmdFindBike");
             AddCovalenceCommand("binfo", "CmdBikeInfo");
             permission.RegisterPermission(permClaim_Use, this);
             permission.RegisterPermission(permFind_Use, this);
             permission.RegisterPermission(permSpawn_Use, this);
+            permission.RegisterPermission(permSpawn_Motor, this);
             permission.RegisterPermission(permVIP, this);
 
             // Fix ownership for bikes perhaps previously claimed but not current managed.
@@ -310,7 +313,7 @@ namespace Oxide.Plugins
             }
             if (configData.Options.SetHealthOnClaim)
             {
-                bike.SetHealth(100);
+                bike.SetHealth(250);
             }
 
             Message(player.IPlayer, "bikeclaimed");
@@ -324,13 +327,13 @@ namespace Oxide.Plugins
 
             BasePlayer player = iplayer.Object as BasePlayer;
             List<Bike> hlist = new List<Bike>();
-            Vis.Entities(player.transform.position, 1f, hlist);
+            Vis.Entities(player.transform.position, 2f, hlist);
             foreach (Bike bike in hlist)
             {
                 if (bike != null)
                 {
                     string owner = bike.OwnerID > 0 ? FindPlayerById(bike.OwnerID) : Lang("serverowned");
-                    Message(iplayer, "bikeinfo", bike.health, owner);
+                    Message(iplayer, "bikeinfo", bike.health, owner, "");
                 }
             }
         }
@@ -359,10 +362,17 @@ namespace Oxide.Plugins
             if (!found) Message(iplayer, "nobikes");
         }
 
+        [Command("mbspawn")]
+        private void CmdSpawnMotorBike(IPlayer iplayer, string command, string[] args)
+        {
+            if (!iplayer.HasPermission(permSpawn_Motor)) { Message(iplayer, "notauthorized"); return; }
+            CmdSpawn(iplayer, command, args);
+        }
+
         [Command("bspawn")]
         private void CmdSpawn(IPlayer iplayer, string command, string[] args)
         {
-            if (!iplayer.HasPermission(permSpawn_Use)) { Message(iplayer, "notauthorized"); return; }
+            if (!iplayer.HasPermission(permSpawn_Use) && !iplayer.HasPermission(permSpawn_Motor)) { Message(iplayer, "notauthorized"); return; }
 
             if (IsAtLimit(Convert.ToUInt64(iplayer.Id)))
             {
@@ -378,7 +388,17 @@ namespace Oxide.Plugins
             }
 
             BasePlayer player = iplayer.Object as BasePlayer;
-            const string staticprefab = "assets/content/vehicles/bikes/pedalbike.prefab";
+            string staticprefab;
+            switch (command)
+            {
+                case "mbspawn":
+                    staticprefab = "assets/content/vehicles/bikes/motorbike.prefab";
+                    break;
+                case "bspawn":
+                default:
+                    staticprefab = "assets/content/vehicles/bikes/pedalbike.prefab";
+                    break;
+            }
 
             Vector3 spawnpos = player.eyes.position + (player.transform.forward * 2f);
             spawnpos.y = TerrainMeta.HeightMap.GetHeight(spawnpos);
