@@ -30,8 +30,8 @@ using UnityEngine;
 
 namespace Oxide.Plugins
 {
-    [Info("BikeClaim", "RFC1920", "0.0.3")]
-    [Description("Manage bicycle ownership and access")]
+    [Info("BikeClaim", "RFC1920", "0.0.4")]
+    [Description("Manage bike ownership and access")]
 
     internal class BikeClaim : RustPlugin
     {
@@ -45,6 +45,7 @@ namespace Oxide.Plugins
         private const string permClaim_Use = "bikeclaim.claim";
         private const string permSpawn_Use = "bikeclaim.spawn";
         private const string permSpawn_Motor = "bikeclaim.motorspawn";
+        private const string permSpawn_Sidecar = "bikeclaim.sidecarspawn";
         private const string permFind_Use = "bikeclaim.find";
         private const string permVIP = "bikeclaim.vip";
         private bool enabled;
@@ -88,6 +89,7 @@ namespace Oxide.Plugins
             AddCovalenceCommand("brelease", "CmdRelease");
             AddCovalenceCommand("bspawn", "CmdSpawn");
             AddCovalenceCommand("mbspawn", "CmdSpawnMotorBike");
+            AddCovalenceCommand("msspawn", "CmdSpawnSidecarBike");
             AddCovalenceCommand("bremove", "CmdRemove");
             AddCovalenceCommand("bfind", "CmdFindBike");
             AddCovalenceCommand("binfo", "CmdBikeInfo");
@@ -369,10 +371,17 @@ namespace Oxide.Plugins
             CmdSpawn(iplayer, command, args);
         }
 
+        [Command("msspawn")]
+        private void CmdSpawnSidecarBike(IPlayer iplayer, string command, string[] args)
+        {
+            if (!iplayer.HasPermission(permSpawn_Sidecar)) { Message(iplayer, "notauthorized"); return; }
+            CmdSpawn(iplayer, command, args);
+        }
+
         [Command("bspawn")]
         private void CmdSpawn(IPlayer iplayer, string command, string[] args)
         {
-            if (!iplayer.HasPermission(permSpawn_Use) && !iplayer.HasPermission(permSpawn_Motor)) { Message(iplayer, "notauthorized"); return; }
+            if (!iplayer.HasPermission(permSpawn_Use) && !iplayer.HasPermission(permSpawn_Motor) && !iplayer.HasPermission(permSpawn_Sidecar)) { Message(iplayer, "notauthorized"); return; }
 
             if (IsAtLimit(Convert.ToUInt64(iplayer.Id)))
             {
@@ -391,6 +400,9 @@ namespace Oxide.Plugins
             string staticprefab;
             switch (command)
             {
+                case "msspawn":
+                    staticprefab = "assets/content/vehicles/bikes/motorbike_sidecar.prefab";
+                    break;
                 case "mbspawn":
                     staticprefab = "assets/content/vehicles/bikes/motorbike.prefab";
                     break;

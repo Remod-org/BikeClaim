@@ -38,7 +38,7 @@ Limits may be set for standard and VIP users.
   "Version": {
     "Major": 0,
     "Minor": 0,
-    "Patch": 3
+    "Patch": 4
   }
 }
 ```
@@ -61,7 +61,8 @@ Limits may be set for standard and VIP users.
 
 - `bikeclaim.claim` -- Allows player claim and release bikes.
 - `bikeclaim.spawn` -- Allows player to spawn or remove a bike.
-- `bikeclaim.mbspawn` -- Allows player to spawn or remove a motorbike.
+- `bikeclaim.motorspawn` -- Allows player to spawn or remove a motorbike.
+- `bikeclaim.sidecarspawn` -- Allows player to spawn or remove a motorbike with sidecar.
 - `bikeclaim.find` -- Allows player to show the location of their nearest claimed bike.
 - `bikeclaim.vip` -- Gives player vip limits when limit is in use.
 
@@ -69,8 +70,10 @@ Limits may be set for standard and VIP users.
 
 - `/bclaim` - Claim the bike you're looking at (requires bikes.claim permission).  If the bike is owned by the server, this should work.  However, this will not bypass the purchase routine at the stables.
 - `/brelease` - Release ownership of the bike you're looking at (requires bikes.claim permission).
-- `/bspawn` - Spawn a new bike in front of you (requires bikes.spawn permission).
-- `/bremove` - Kill the bike in front of you (requires bikes.spawn permission and ownership of the bike).  You may then enjoy some delicious bike meat.
+- `/bremove` - Kill the bike in front of you (requires bikeclaim.spawn permission and ownership of the bike).  You may then enjoy some delicious bike meat.
 - `/bfind` - Show location of nearest owned bike
-- `/binfo` - Show basic info about a bike (Requires bikes.claim permission, but can be used on any bike.)
+- `/binfo` - Show basic info about a bike (Requires bikeclaim.claim permission, but can be used on any bike.)
+- `/bspawn` - Spawn a new bike in front of you (requires bikeclaim.spawn permission).
+- `/mbspawn` - Spawn a new motorbike in front of you (requires bikeclaim.motorspawn permission).
+- `/msspawn` - Spawn a new motorbike with sidecar in front of you (requires bikeclaim.sidecarspawn permission).
 
