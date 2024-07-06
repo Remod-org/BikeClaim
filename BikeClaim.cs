@@ -30,7 +30,7 @@ using UnityEngine;
 
 namespace Oxide.Plugins
 {
-    [Info("BikeClaim", "RFC1920", "0.0.4")]
+    [Info("BikeClaim", "RFC1920", "1.0.1")]
     [Description("Manage bike ownership and access")]
 
     internal class BikeClaim : RustPlugin
@@ -46,6 +46,7 @@ namespace Oxide.Plugins
         private const string permSpawn_Use = "bikeclaim.spawn";
         private const string permSpawn_Motor = "bikeclaim.motorspawn";
         private const string permSpawn_Sidecar = "bikeclaim.sidecarspawn";
+        private const string permSpawn_Trike = "bikeclaim.trikespawn";
         private const string permFind_Use = "bikeclaim.find";
         private const string permVIP = "bikeclaim.vip";
         private bool enabled;
@@ -90,6 +91,7 @@ namespace Oxide.Plugins
             AddCovalenceCommand("bspawn", "CmdSpawn");
             AddCovalenceCommand("mbspawn", "CmdSpawnMotorBike");
             AddCovalenceCommand("msspawn", "CmdSpawnSidecarBike");
+            AddCovalenceCommand("mtspawn", "CmdSpawnTrike");
             AddCovalenceCommand("bremove", "CmdRemove");
             AddCovalenceCommand("bfind", "CmdFindBike");
             AddCovalenceCommand("binfo", "CmdBikeInfo");
@@ -97,11 +99,14 @@ namespace Oxide.Plugins
             permission.RegisterPermission(permFind_Use, this);
             permission.RegisterPermission(permSpawn_Use, this);
             permission.RegisterPermission(permSpawn_Motor, this);
+            permission.RegisterPermission(permSpawn_Sidecar, this);
+            permission.RegisterPermission(permSpawn_Trike, this);
             permission.RegisterPermission(permVIP, this);
 
             // Fix ownership for bikes perhaps previously claimed but not current managed.
             foreach (Bike bike in UnityEngine.Object.FindObjectsOfType<Bike>())
             {
+                if (bike.net == null) continue;
                 if (!bikes.ContainsKey((uint)bike.net.ID.Value) && bike.OwnerID != 0)
                 {
                     DoLog($"Setting owner of unmanaged bike {bike.net.ID} back to server.");
@@ -256,6 +261,29 @@ namespace Oxide.Plugins
             return null;
         }
 
+        //private void OnPlayerInput(BasePlayer player, InputState input)
+        //{
+        //    if (!configData.Options.PlayBellOnFireOne) return;
+        //    if (!input.IsValidEntityReference()) return;
+        //    if (player?.userID.IsSteamId() != true || input == null) return;
+        //    if (input.current.buttons != (int)BUTTON.FIRE_PRIMARY) return;
+        //    Bike bike = player.GetMountedVehicle() as Bike;
+        //    if (bike?.ShortPrefabName.Equals("motorbike") == true)
+        //    {
+        //        if (!bikes.ContainsKey(bike.net.ID.Value))
+        //        {
+        //            return;
+        //        }
+
+        //        if (IsFriend(player.userID, bike.OwnerID))
+        //        {
+        //            Puts("Ring ring");
+        //            Effect.server.Run("assets/bundled/prefabs/fx/repairbench/itemrepair.prefab", player.transform.position);
+        //        }
+        //        return;
+        //    }
+        //}
+
         private void OnEntityMounted(BaseMountable mountable, BasePlayer player)
         {
             if (!enabled) return;
@@ -295,6 +323,7 @@ namespace Oxide.Plugins
                 {
                     Message(player.IPlayer, "bikeowned");
                 }
+
             }
         }
         #endregion
@@ -378,6 +407,13 @@ namespace Oxide.Plugins
             CmdSpawn(iplayer, command, args);
         }
 
+        [Command("mtspawn")]
+        private void CmdSpawnTrike(IPlayer iplayer, string command, string[] args)
+        {
+            if (!iplayer.HasPermission(permSpawn_Sidecar)) { Message(iplayer, "notauthorized"); return; }
+            CmdSpawn(iplayer, command, args);
+        }
+
         [Command("bspawn")]
         private void CmdSpawn(IPlayer iplayer, string command, string[] args)
         {
@@ -400,6 +436,9 @@ namespace Oxide.Plugins
             string staticprefab;
             switch (command)
             {
+                case "mtspawn":
+                    staticprefab = "assets/content/vehicles/bikes/pedaltrike.prefab";
+                    break;
                 case "msspawn":
                     staticprefab = "assets/content/vehicles/bikes/motorbike_sidecar.prefab";
                     break;
@@ -767,6 +806,7 @@ namespace Oxide.Plugins
                     ReleaseTime = 600f,
                     Limit = 2f,
                     VIPLimit = 5f
+                    //PlayBellOnFireOne = true
                 },
                 Version = Version
             };
@@ -804,6 +844,7 @@ namespace Oxide.Plugins
             public float Limit;
             public float VIPLimit;
             public bool SetHealthOnClaim;
+            //public bool PlayBellOnFireOne;
         }
 
         public class HTimer
