@@ -36,9 +36,9 @@ Limits may be set for standard and VIP users.
     "VIPLimit": 5.0
   },
   "Version": {
-    "Major": 0,
+    "Major": 1,
     "Minor": 0,
-    "Patch": 4
+    "Patch": 1
   }
 }
 ```
@@ -63,6 +63,7 @@ Limits may be set for standard and VIP users.
 - `bikeclaim.spawn` -- Allows player to spawn or remove a bike.
 - `bikeclaim.motorspawn` -- Allows player to spawn or remove a motorbike.
 - `bikeclaim.sidecarspawn` -- Allows player to spawn or remove a motorbike with sidecar.
+- `bikeclaim.trikespawn` -- Allows player to spawn or remove a trike.
 - `bikeclaim.find` -- Allows player to show the location of their nearest claimed bike.
 - `bikeclaim.vip` -- Gives player vip limits when limit is in use.
 
@@ -76,4 +77,5 @@ Limits may be set for standard and VIP users.
 - `/bspawn` - Spawn a new bike in front of you (requires bikeclaim.spawn permission).
 - `/mbspawn` - Spawn a new motorbike in front of you (requires bikeclaim.motorspawn permission).
 - `/msspawn` - Spawn a new motorbike with sidecar in front of you (requires bikeclaim.sidecarspawn permission).
+- `/mtspawn` - Spawn a new trike in front of you (requires bikeclaim.trikespawn permission).
 
