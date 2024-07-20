@@ -26,11 +26,12 @@ using Rust;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using UnityEngine;
 
 namespace Oxide.Plugins
 {
-    [Info("BikeClaim", "RFC1920", "1.0.1")]
+    [Info("BikeClaim", "RFC1920", "1.0.2")]
     [Description("Manage bike ownership and access")]
 
     internal class BikeClaim : RustPlugin
@@ -50,6 +51,7 @@ namespace Oxide.Plugins
         private const string permFind_Use = "bikeclaim.find";
         private const string permVIP = "bikeclaim.vip";
         private bool enabled;
+        private const int LAYER_TARGET = ~(1 << 2 | 1 << 3 | 1 << 4 | 1 << 10 | 1 << 18 | 1 << 28 | 1 << 29);
 
         #region Message
         private string Lang(string key, string id = null, params object[] args) => string.Format(lang.GetMessage(key, this, id), args);
@@ -76,6 +78,14 @@ namespace Oxide.Plugins
                 ["bikeinfo"] = "Health: {0}\n  Owner: {1}\n  {2}",
                 ["notyourbike"] = "Someone else owns this bike.  Perhaps no one...",
                 ["nobikes"] = "No bikes found.",
+                ["bclaim"] = "Claim a bike of any type.",
+                ["brelease"] = "Release a bike you own",
+                ["bfind"] = "Locate your bike(s)",
+                ["binfo"] = "Display info about a bike in your view",
+                ["bspawn"] = "Spawn a bicycle",
+                ["mbspawn"] = "Spawn a motorcycle",
+                ["msspawn"] = "Spawn a sidecar motorcycle",
+                ["mtspawn"] = "Spawn a tricycle",
                 ["foundbike"] = "Your bike is {0}m away in {1}."
             }, this);
         }
@@ -451,11 +461,17 @@ namespace Oxide.Plugins
                     break;
             }
 
-            Vector3 spawnpos = player.eyes.position + (player.transform.forward * 2f);
+            // 999
+            Quaternion rotation;
+            TryGetPlayerView(player, out rotation);
+            Vector3 forward = rotation * Vector3.forward;
+            Vector3 straight = Vector3.Cross(Vector3.Cross(Vector3.up, forward), Vector3.up).normalized;
+            Vector3 spawnpos = player.transform.position + straight;
+            //Vector3 spawnpos = player.eyes.position + (player.transform.forward * 2f);
             spawnpos.y = TerrainMeta.HeightMap.GetHeight(spawnpos);
-            Vector3 rot = player.transform.rotation.eulerAngles;
-            rot = new Vector3(rot.x, rot.y + 180, rot.z);
-            BaseEntity bike = GameManager.server.CreateEntity(staticprefab, spawnpos, Quaternion.Euler(rot), true);
+            //Vector3 rot = player.transform.rotation.eulerAngles;
+            //rot = new Vector3(rot.x, rot.y + 180, rot.z);
+            BaseEntity bike = GameManager.server.CreateEntity(staticprefab, spawnpos, rotation, true);
 
             if (bike)
             {
@@ -565,6 +581,10 @@ namespace Oxide.Plugins
                         bike.OwnerID = 0;
                         uint bikeid = (uint)bike.net.ID.Value;
                         bikes.Remove(bikeid);
+                        if (configData.Options.DestroyOnRelease)
+                        {
+                            bike.DestroyShared();
+                        }
                         HandleTimer(bikeid, bike.OwnerID);
                         SaveData();
                         Message(iplayer, "bikereleased");
@@ -581,6 +601,52 @@ namespace Oxide.Plugins
         #endregion
 
         #region helpers
+        [HookMethod("SendHelpText")]
+        private void SendHelpText(BasePlayer player)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append("<color=#05eb59>").Append(Name).Append(' ').Append(Version).Append(" - ").Append(Description).Append("</color>\n");
+            if (player.IPlayer.HasPermission(permClaim_Use))
+            {
+                sb.Append("  . ").Append("/bclaim").Append(" - ").Append(Lang("bclaim")).Append("\n");
+                sb.Append("  . ").Append("/brelease").Append(" - ").Append(Lang("brelease")).Append("\n");
+                sb.Append("  . ").Append("/binfo").Append(" - ").Append(Lang("binfo")).Append("\n");
+            }
+            else
+            {
+                return;
+            }
+            if (player.IPlayer.HasPermission(permSpawn_Use))
+            {
+                sb.Append("  . ").Append("/bspawn").Append(" - ").Append(Lang("bspawn")).Append("\n");
+            }
+            if (player.IPlayer.HasPermission(permSpawn_Motor))
+            {
+                sb.Append("  . ").Append("/mbspawn").Append(" - ").Append(Lang("mbspawn")).Append("\n");
+            }
+            if (player.IPlayer.HasPermission(permSpawn_Sidecar))
+            {
+                sb.Append("  . ").Append("/msspawn").Append(" - ").Append(Lang("msspawn")).Append("\n");
+            }
+            if (player.IPlayer.HasPermission(permSpawn_Trike))
+            {
+                sb.Append("  . ").Append("/mtspawn").Append(" - ").Append(Lang("mtspawn")).Append("\n");
+            }
+
+            player.ChatMessage(sb.ToString());
+        }
+
+        private static bool TryGetPlayerView(BasePlayer player, out Quaternion viewAngle)
+        {
+            viewAngle = Quaternion.identity;
+
+            if (player.serverInput.current == null) return false;
+
+            viewAngle = Quaternion.Euler(player.serverInput.current.aimAngles);
+
+            return true;
+        }
+
         private static string FindPlayerById(ulong userid)
         {
             foreach (BasePlayer current in BasePlayer.allPlayerList)
@@ -844,6 +910,7 @@ namespace Oxide.Plugins
             public float Limit;
             public float VIPLimit;
             public bool SetHealthOnClaim;
+            public bool DestroyOnRelease;
             //public bool PlayBellOnFireOne;
         }
 
