@@ -25,13 +25,12 @@ using Oxide.Game.Rust;
 using Rust;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using UnityEngine;
 
 namespace Oxide.Plugins
 {
-    [Info("BikeClaim", "RFC1920", "1.0.2")]
+    [Info("BikeClaim", "RFC1920", "1.0.3")]
     [Description("Manage bike ownership and access")]
 
     internal class BikeClaim : RustPlugin
@@ -41,8 +40,8 @@ namespace Oxide.Plugins
         [PluginReference]
         private readonly Plugin Friends, Clans, GridAPI;
 
-        private static Dictionary<ulong, ulong> bikes = new Dictionary<ulong, ulong>();
-        private static Dictionary<ulong, HTimer> htimer = new Dictionary<ulong, HTimer>();
+        private static Dictionary<ulong, ulong> bikes = new();
+        private static Dictionary<ulong, HTimer> htimer = new();
         private const string permClaim_Use = "bikeclaim.claim";
         private const string permSpawn_Use = "bikeclaim.spawn";
         private const string permSpawn_Motor = "bikeclaim.motorspawn";
@@ -184,7 +183,7 @@ namespace Oxide.Plugins
                         {
                             // Verify bike owner is registered to the TC
                             //foreach (ProtoBuf.PlayerNameID p in tc.authorizedPlayers)
-                            foreach (ulong auth in tc.authorizedPlayers.Select(x => x.userid).ToArray())
+                            foreach (ulong auth in tc.authorizedPlayers)
                             {
                                 if (auth == bike.OwnerID)
                                 {
@@ -271,29 +270,6 @@ namespace Oxide.Plugins
             return null;
         }
 
-        //private void OnPlayerInput(BasePlayer player, InputState input)
-        //{
-        //    if (!configData.Options.PlayBellOnFireOne) return;
-        //    if (!input.IsValidEntityReference()) return;
-        //    if (player?.userID.IsSteamId() != true || input == null) return;
-        //    if (input.current.buttons != (int)BUTTON.FIRE_PRIMARY) return;
-        //    Bike bike = player.GetMountedVehicle() as Bike;
-        //    if (bike?.ShortPrefabName.Equals("motorbike") == true)
-        //    {
-        //        if (!bikes.ContainsKey(bike.net.ID.Value))
-        //        {
-        //            return;
-        //        }
-
-        //        if (IsFriend(player.userID, bike.OwnerID))
-        //        {
-        //            Puts("Ring ring");
-        //            Effect.server.Run("assets/bundled/prefabs/fx/repairbench/itemrepair.prefab", player.transform.position);
-        //        }
-        //        return;
-        //    }
-        //}
-
         private void OnEntityMounted(BaseMountable mountable, BasePlayer player)
         {
             if (!enabled) return;
@@ -367,7 +343,7 @@ namespace Oxide.Plugins
             if (!iplayer.HasPermission(permClaim_Use)) { Message(iplayer, "notauthorized"); return; }
 
             BasePlayer player = iplayer.Object as BasePlayer;
-            List<Bike> hlist = new List<Bike>();
+            List<Bike> hlist = new();
             Vis.Entities(player.transform.position, 2f, hlist);
             foreach (Bike bike in hlist)
             {
@@ -462,8 +438,7 @@ namespace Oxide.Plugins
             }
 
             // 999
-            Quaternion rotation;
-            TryGetPlayerView(player, out rotation);
+            TryGetPlayerView(player, out Quaternion rotation);
             Vector3 forward = rotation * Vector3.forward;
             Vector3 straight = Vector3.Cross(Vector3.Cross(Vector3.up, forward), Vector3.up).normalized;
             Vector3 spawnpos = player.transform.position + straight;
@@ -493,7 +468,7 @@ namespace Oxide.Plugins
         {
             if (!iplayer.HasPermission(permSpawn_Use)) { Message(iplayer, "notauthorized"); return; }
 
-            List<Bike> hlist = new List<Bike>();
+            List<Bike> hlist = new();
             BasePlayer player = iplayer.Object as BasePlayer;
             Vis.Entities(player.transform.position, 1f, hlist);
             bool found = false;
@@ -521,7 +496,7 @@ namespace Oxide.Plugins
             if (!iplayer.HasPermission(permClaim_Use)) { Message(iplayer, "notauthorized"); return; }
 
             BasePlayer player = iplayer.Object as BasePlayer;
-            List<Bike> hlist = new List<Bike>();
+            List<Bike> hlist = new();
             Vis.Entities(player.transform.position, 1f, hlist);
             bool found = false;
             foreach (Bike bike in hlist)
@@ -568,7 +543,7 @@ namespace Oxide.Plugins
             if (!iplayer.HasPermission(permClaim_Use)) { Message(iplayer, "notauthorized"); return; }
 
             BasePlayer player = iplayer.Object as BasePlayer;
-            List<Bike> hlist = new List<Bike>();
+            List<Bike> hlist = new();
             Vis.Entities(player.transform.position, 1f, hlist);
             bool found = false;
             foreach (Bike bike in hlist)
@@ -604,7 +579,7 @@ namespace Oxide.Plugins
         [HookMethod("SendHelpText")]
         private void SendHelpText(BasePlayer player)
         {
-            StringBuilder sb = new StringBuilder();
+            StringBuilder sb = new();
             sb.Append("<color=#05eb59>").Append(Name).Append(' ').Append(Version).Append(" - ").Append(Description).Append("</color>\n");
             if (player.IPlayer.HasPermission(permClaim_Use))
             {
@@ -669,7 +644,7 @@ namespace Oxide.Plugins
             else
             {
                 // From GrTeleport
-                Vector2 r = new Vector2((World.Size / 2) + position.x, (World.Size / 2) + position.z);
+                Vector2 r = new((World.Size / 2) + position.x, (World.Size / 2) + position.z);
                 float x = Mathf.Floor(r.x / 146.3f) % 26;
                 float z = Mathf.Floor(World.Size / 146.3f) - Mathf.Floor(r.y / 146.3f);
 
@@ -685,7 +660,7 @@ namespace Oxide.Plugins
         private void PurgeInvalid()
         {
             bool found = false;
-            List<ulong> toremove = new List<ulong>();
+            List<ulong> toremove = new();
             foreach (ulong bike in bikes.Keys)
             {
                 if (BaseNetworkable.serverEntities.Find(new NetworkableId((uint)bike)) == null)
@@ -851,7 +826,7 @@ namespace Oxide.Plugins
         protected override void LoadDefaultConfig()
         {
             Puts("Creating new config file.");
-            ConfigData config = new ConfigData
+            ConfigData config = new()
             {
                 Options = new Options()
                 {
