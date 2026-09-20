@@ -30,7 +30,7 @@ using UnityEngine;
 
 namespace Oxide.Plugins
 {
-    [Info("BikeClaim", "RFC1920", "1.0.3")]
+    [Info("BikeClaim", "RFC1920", "1.0.4")]
     [Description("Manage bike ownership and access")]
 
     internal class BikeClaim : RustPlugin
@@ -113,7 +113,7 @@ namespace Oxide.Plugins
             permission.RegisterPermission(permVIP, this);
 
             // Fix ownership for bikes perhaps previously claimed but not current managed.
-            foreach (Bike bike in UnityEngine.Object.FindObjectsOfType<Bike>())
+            foreach (Bike bike in UnityEngine.Object.FindObjectsByType(typeof(Bike), FindObjectsSortMode.None))
             {
                 if (bike.net == null) continue;
                 if (!bikes.ContainsKey((uint)bike.net.ID.Value) && bike.OwnerID != 0)
